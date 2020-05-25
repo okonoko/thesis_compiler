@@ -1,25 +1,48 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import Tokenizer from './components/Tokenizer';
+import Ast from './components/Ast'
+import Parser from './components/Parser'
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
 
+const initialState = { rawCode: '', tokenized: '', parsed: '', ast: '',};
+function reducer(state = initialState, action){
+  console.log(state);
+  switch (action.type) {
+    case "RAW_CODE_INPUT":
+      return {
+        ...state,
+        rawCode: action.value
+      }
+    case "TOKENIZED":
+      return {
+        ...state,
+        tokenized: action.value
+      }
+    case "PARSED":
+      return {
+        ...state,
+        parsed: action.value
+      }
+    case "AST":
+      return {
+        ...state,
+        ast: action.value
+      }
+    default:
+      return state;
+  }
+
+}
+const store = createStore(reducer);
+store.dispatch({ type: "SET_RAW_CODE",})
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <Tokenizer/>
+      <Parser/>
+      <Ast/>
+    </Provider>
   );
 }
 
