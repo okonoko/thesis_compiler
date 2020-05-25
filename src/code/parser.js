@@ -2,7 +2,7 @@ export function parse(tokens){
     var currentIndex = 0;
     var currentToken = tokens[currentIndex];
     var nextToken = tokens[currentIndex+1];
-    var ast = [];
+    const ast = [];
 
     function updateTokens(){
         currentIndex++;
@@ -33,20 +33,22 @@ export function parse(tokens){
                     return parseWhileStatement();
                 case "if":
                     return parseIfStatement();
+                case "export":
+                    return parseFunctionDeclaration();
                 case "func":
-                    return parseFunctionDeclaration();    
+                    return parseFunctionCall();
+                case "return":
+                    return parseReturnStatement();
                 default:
                     throw new Error(
                     `Unknown keyword ${currentToken.value}`,
                     currentToken
                     );
             }
-        } else if (currentToken.type === "identifier") {
+        } else if (currentToken.type === "IDENTIFIER") {
             if (nextToken.value === "=") {
               return parseVariableAssignment();
-            } else {
-              return parseFunctionCall();
-            }
+            } 
           }
     };
         
@@ -63,7 +65,7 @@ export function parse(tokens){
             node = { type: "IDENTIFIER", value: currentToken.value };
             eatToken();
             return node;
-          case "(":
+          case "PARENS_OPEN":
             eatToken("(");
             const left = parseExpression();
             const operator = currentToken.value;
@@ -93,6 +95,21 @@ export function parse(tokens){
         };
     };
 
+    function parseReturnStatement(){
+        eatToken("return");
+        const returnNode = {
+            type: "RETURN_STATEMENT",
+            statements: []
+        }
+        eatToken("(");
+        while (currentToken.value !== ")") {
+            returnNode.statements.push(parseStatement())
+            eatToken();
+        }
+        eatToken(")");
+        return returnNode;
+    }
+
     function parseIfStatement(){
         eatToken("if");
         const condition = parseExpression();
@@ -101,7 +118,7 @@ export function parse(tokens){
             statements: []
         };
         eatToken("{");
-        while (currentToken.type !== "}") {
+        while (currentToken.value !== "}") {
             consequent.statements.push(parseStatement())
             eatToken();
         }
@@ -117,8 +134,8 @@ export function parse(tokens){
             statements: []
         };
         eatToken("{")
-        while (currentToken.type !== "}") {
-            loop.statements.append(parseStatement())
+        while (currentToken.value !== "}") {
+            loop.statements.push(parseStatement())
             eatToken();
         }
         eatToken("}");
@@ -152,15 +169,15 @@ export function parse(tokens){
         eatToken("func");
         const name = currentToken.value;
         eatToken();
-        const args = parseArguments();
+        const params = parseParameters();
         return {
             type: "FUNCTION_CALL",
             name,
-            args
+            params
         };
     };
 
-    function parseArguments(){
+    function parseParameters(){
         const args = [];
         eatToken("(");
         while (currentToken.value !== ")") {
@@ -174,14 +191,15 @@ export function parse(tokens){
     }
 
     function parseFunctionDeclaration(){
-        eatToken("func");
+        eatToken("export");
         const name = currentToken.value;
         eatToken();
-        const args = parseArguments();
+        const params = parseParameters();
         const statements = [];
-        eatToken("{")
-        while (currentToken.type !== "}") {
-            statements.push(parseStatement())
+        eatToken("{");
+        console.log(currentToken)
+        while (currentToken.value !== "}") {
+            statements.push(parseStatement());
             eatToken();
         }
         eatToken("}");
@@ -189,15 +207,14 @@ export function parse(tokens){
         return {
             type: "FUNCTION",
             name,
-            args,
+            params,
             statements
         };
     };
 
-    ast.push({type: "FUNCTION", name: "MAIN"})
-
     while(currentIndex < tokens.length){
         ast.push(parseStatement())
     }
-    return ast;
+    const tree = {type: "MODULE", functions: ast};
+    return tree;
 }

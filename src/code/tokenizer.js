@@ -12,7 +12,9 @@ export function tokenize(rawCode){
         "print",
         "while",
         "if",
-        "func"
+        "func",
+        "return",
+        "export",
     ]
 
     while (currentIndex < rawCode.length){
