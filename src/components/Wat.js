@@ -6,26 +6,14 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import liquify from "../code/water";
 
-class Ast extends React.Component {
-
-    // handleChange = (event) => {
-    //     this.props.dispatch({ type: "PARSED", value: event.target.value})
-    // }
-
-    
-    handleClick = () => {
-        const ast = liquify(this.props.parsed);
-        console.log(this.props.parsed);
-        this.props.dispatch({ type: "AST", value: ast})
-    }
+class Wat extends React.Component {
 
     render(){
         return (
         <Card className="card" >
               <CardContent>
-                <TextField className="txtxt" variant="outlined" multiline value={JSON.stringify(this.props.parsed)} //onChange={event => this.handleChange(event)}
+                <TextField className="txtxt" variant="outlined" multiline value={JSON.stringify(this.props.ast)} //onChange={event => this.handleChange(event)}
                 />
               </CardContent>
             <CardActions>
@@ -41,4 +29,4 @@ const mapStateToProps = state => ({
     parsed: state.parsed,
     ast: state.ast
 });
-export default connect(mapStateToProps)(Ast);
+export default connect(mapStateToProps)(Wat);

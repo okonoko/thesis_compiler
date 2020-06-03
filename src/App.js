@@ -1,7 +1,8 @@
 import React from 'react';
 import Tokenizer from './components/Tokenizer';
-import Ast from './components/Ast'
-import Parser from './components/Parser'
+import Ast from './components/Ast';
+import Parser from './components/Parser';
+import Wat from './components/Wat';
 import { createStore } from 'redux';
 import { Provider } from 'react-redux';
 
@@ -42,6 +43,7 @@ function App() {
       <Tokenizer/>
       <Parser/>
       <Ast/>
+      <Wat/>
     </Provider>
   );
 }

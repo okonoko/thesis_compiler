@@ -29,13 +29,13 @@ export function tokenize(rawCode){
         if (NUMERIC.test(current)) {
             var number = 0;
             while(NUMERIC.test(current) && currentIndex < rawCode.length) {
-                number += parseInt(current);
+                number += current;
                 currentIndex++;
                 current = rawCode[currentIndex];
             }
             tokens.push({
                 type: 'NUMBER',
-                value: number
+                value: parseInt(number)
             });
             continue;
         }

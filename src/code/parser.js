@@ -20,6 +20,7 @@ export function parse(tokens){
             );
         }
         updateTokens();
+        console.log(currentToken)
     };
 
     function parseStatement(){
@@ -48,17 +49,17 @@ export function parse(tokens){
         } else if (currentToken.type === "IDENTIFIER") {
             if (nextToken.value === "=") {
               return parseVariableAssignment();
-            } 
+            } else {
+                parseExpression()
+            }
           }
     };
         
     function parseExpression(){
+        var node = {}
         switch (currentToken.type) {
           case "NUMBER":
-            var node = {
-              type: "NUMBER_LITERAL",
-              value: Number(currentToken.value)
-            };
+            node = { type: "NUMBER_LITERAL", value: currentToken.value };
             eatToken();
             return node;
           case "IDENTIFIER":
@@ -86,62 +87,6 @@ export function parse(tokens){
         }
       };
 
-
-    function parsePrintStatement(){
-        eatToken("print");
-        return {
-          type: "PRINT_STATEMENT",
-          expression: parseExpression()
-        };
-    };
-
-    function parseReturnStatement(){
-        eatToken("return");
-        const returnNode = {
-            type: "RETURN_STATEMENT",
-            statements: []
-        }
-        eatToken("(");
-        while (currentToken.value !== ")") {
-            returnNode.statements.push(parseStatement())
-            eatToken();
-        }
-        eatToken(")");
-        return returnNode;
-    }
-
-    function parseIfStatement(){
-        eatToken("if");
-        const condition = parseExpression();
-        const consequent = {
-            type: "CONSEQUENT",
-            statements: []
-        };
-        eatToken("{");
-        while (currentToken.value !== "}") {
-            consequent.statements.push(parseStatement())
-            eatToken();
-        }
-        eatToken("}");
-        return { type: "IF_STATEMENT", condition: condition, consequent: consequent};
-      };
-
-    function parseWhileStatement(){
-        eatToken("while");
-        const condition = parseExpression();
-        const loop = {
-            type: "WHILE_LOOP",
-            statements: []
-        };
-        eatToken("{")
-        while (currentToken.value !== "}") {
-            loop.statements.push(parseStatement())
-            eatToken();
-        }
-        eatToken("}");
-        return { type: "whileStatement", condition: condition, loop: loop};
-    };
-
     function parseVariableAssignment(){
         const name = currentToken.value;
         eatToken();
@@ -164,6 +109,69 @@ export function parse(tokens){
             value: parseExpression()
         };
     };
+
+    function parsePrintStatement(){
+        eatToken("print");
+        return {
+          type: "PRINT_STATEMENT",
+          expression: parseExpression()
+        };
+    };
+
+    function parseReturnStatement(){
+        eatToken("return");
+        const node = {
+            type: "RETURN_STATEMENT",
+            statements: []
+        }
+        eatToken("(");
+        while (currentToken.value !== ")") {
+            node.statements.push(parseStatement());
+            if(currentToken.value !== ")"){
+                eatToken()
+            }
+        }
+        eatToken(")");
+        return node;
+    }
+
+    function parseIfStatement(){
+        eatToken("if");
+        const condition = parseExpression();
+        const consequent = {
+            type: "CONSEQUENT",
+            statements: []
+        };
+        eatToken("{");
+        while (currentToken.value !== "}") {
+            consequent.statements.push(parseStatement());
+            if(currentToken.value !== "}"){
+                eatToken()
+            }
+        }
+        eatToken("}");
+        return { type: "IF_STATEMENT", condition: condition, consequent: consequent};
+      };
+
+    function parseWhileStatement(){
+        eatToken("while");
+        const condition = parseExpression();
+        const loop = {
+            type: "WHILE_LOOP",
+            statements: []
+        };
+        eatToken("{")
+        while (currentToken.value !== "}") {
+            loop.statements.push(parseStatement());
+            if(currentToken.value !== "}"){
+                eatToken()
+            }
+        }
+        eatToken("}");
+        return { type: "WHILE_STATEMENT", condition: condition, loop: loop};
+    };
+
+    
 
     function parseFunctionCall(){
         eatToken("func");
@@ -197,15 +205,16 @@ export function parse(tokens){
         const params = parseParameters();
         const statements = [];
         eatToken("{");
-        console.log(currentToken)
         while (currentToken.value !== "}") {
             statements.push(parseStatement());
-            eatToken();
+            if(currentToken.value !== "}"){
+                eatToken()
+            }
         }
         eatToken("}");
 
         return {
-            type: "FUNCTION",
+            type: "FUNCTION_DECLARATION",
             name,
             params,
             statements
