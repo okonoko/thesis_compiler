@@ -5,50 +5,58 @@ export default function liquify(ast){
 
     const generateModule = (ast) => {
         // return `(module ${ast.functions.forEach(functionNode => generateFunction(functionNode))})`;
-        return `(module ${ast.functions.forEach(functionNode => console.log(functionNode))})`;
+        var functionString = "";
+        for (const functionNode in ast.functions){
+            functionString += generateFunction(ast.functions[functionNode]);
+        }
+        return "(module " + functionString+ ")";
     }
 
     const generateFunction = (functionNode) => {
-        // parameters[functionNode.name] = [];
-        // return `(func $${functionNode.name}
-        //         ${generateParams(functionNode.params, functionNode.name)} 
-        //         (result i32)
-        //         ${functionNode.statements ? generateStatements(functionNode.statements, functionNode.name) : ''})
-        //         (export "${functionNode.name}" (func  $${functionNode.name}))`
-        return functionNode;
+        console.log(functionNode.statements);
+        parameters[functionNode.name] = [];
+        locals[functionNode.name] = [];
+        var functionName = functionNode.name;
+        var params = generateParams(functionNode.params, functionName);
+        var statements = generateStatements(functionNode.statements, functionNode.name);
+        return "(func $" + functionName + params + "(result i32)" + statements + "(export $" + functionName + " (func $" + functionName + ") )";
     }
 
     const generateParams = (params, functionName) => {
         var paramsString = '';
-        params.forEach(param => {
-            paramsString += `(param $${param.name} i32)`
-            parameters[functionName].push(param.name);
-        })
+        for (const param in params){
+
+            parameters[functionName].push(params[param]);
+            paramsString += "(param $" + params[param].value + " i32)";
+        }
         return paramsString;
     }
 
-    const generateStatements = (statementsNode, functionName) => {
-        const statementsString = '';
-        statementsNode.forEach(statement => {
-            switch (statement.type) {
+    const generateStatements = (statementsArray, functionName) => {
+        console.log(statementsArray[0].type);
+        var statementsString = '';
+        for (const statement in statementsArray){
+            switch (statementsArray[statement].type) {
                 case "IF_STATEMENT":
-                    statementsString += generateIfStatement(statement, functionName);
+                    statementsString += generateIfStatement(statementsArray[statement], functionName);
                     break;
                 case "WHILE_STATEMENT":
                     break;
                 case "VARIABLE_ASSIGNMENT":
-                    if (statement.name in locals[functionName] || statement.name in parameters[functionName]){
-                        statementsString += assignment(statement, functionName);
+                    if (locals[functionName].includes(statementsArray[statement].name) || parameters[functionName].includes(statementsArray[statement].name)){
+                        console.log("chuj")
+                       statementsString += assignment(statementsArray[statement], functionName);
                     } else {
-                        locals[functionName].push(statement.name);
-                        statementsString += `(local $${statement.name} i32) ${assignment(statement, functionName)}`;
+                        console.log("cipa")
+                        locals[functionName].push(statementsArray[statement].name);
+                        statementsString += "(local $"+ statementsArray[statement].name + "i32)" + assignment(statementsArray[statement], functionName);
                     }
                     break;
                 case "RETURN_STATEMENT":
                 default:
                     break;
             }
-        })
+        }
         return statementsString;
 
     }
@@ -56,13 +64,13 @@ export default function liquify(ast){
     const assignment = (statement, functionName) => {
         switch (statement.value.type) {
             case "NUMBER_LITERAL":
-                return `(set_local $${statement.name} i32.const ${statement.value.value})`;
+                return "(set_local $" + statement.name + "i32.const" + statement.value.value + ")";
             case "IDENTIFIER":
                 if (statement.name in locals[functionName] || statement.name in parameters[functionName]){
-                    return `(set_local $${statement.name} get_local $${statement.value.value})`;
+                    return "(set_local $" + statement.name + "get_local $" + statement.value.value + ")";
                 }//ERROR ELSE CUZ NEVER DECLARED
             case "BINARY_EXPRESSION":
-                return `(set_local $${statement.name} ${generateBinary(statement.value, functionName)})`
+                return "(set_local $" + statement.name + generateBinary(statement.value, functionName);
         }
 }
 
@@ -75,15 +83,15 @@ export default function liquify(ast){
         var right = generateExpression(rightNode, functionName);
         var operationType = generateOperation(operator);
 
-        return`(${operationType} (${left}) (${right})`
+        return "(" + operationType + "(" + left + ")" + "(" + right + ")";
     }
 
     const generateExpression = (node, functionName) => {
         switch (node.type){
             case "NUMBER_LITERAL":
-                return `(i32.const ${node.value})`;
+                return "(i32.const" + node.value + ")";
             case "IDENTIFIER": //CHECK IF WE HAVE ACTUALY DECLARED THIS VARIABLE
-                return `(get_local $${node.value})`
+                return "(get_local $" + node.value + ")";
             case "BINARY_EXPRESSION":
                 return generateBinary(node, functionName)
         }
@@ -114,7 +122,8 @@ export default function liquify(ast){
     }
 
     const generateIfStatement = (ifStatementNode, functionName) => {
-        return `(if ${generateBinary(ifStatementNode.condition)} (then ${generateStatements(ifStatementNode.consequent, functionName)}))` 
+        console.log(ifStatementNode.consequent.statements);
+        return "(if " + generateBinary(ifStatementNode.condition, functionName) + ") (then" + generateStatements(ifStatementNode.consequent.statements, functionName) + ")"; 
     }
 
     const generateWhileStatement = (whileStatementNode) => {

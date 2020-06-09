@@ -20,7 +20,6 @@ export function parse(tokens){
             );
         }
         updateTokens();
-        console.log(currentToken)
     };
 
     function parseStatement(){
@@ -92,7 +91,7 @@ export function parse(tokens){
         eatToken();
         eatToken("=");
         return {
-            type: "VARIABLE_ASSIGNNMENT",
+            type: "VARIABLE_ASSIGNMENT",
             name,
             value: parseExpression()
         };
