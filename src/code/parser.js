@@ -33,9 +33,9 @@ export function parse(tokens){
                     return parseWhileStatement();
                 case "if":
                     return parseIfStatement();
-                case "export":
-                    return parseFunctionDeclaration();
                 case "func":
+                    return parseFunctionDeclaration();
+                case "call":
                     return parseFunctionCall();
                 case "return":
                     return parseReturnStatement();
@@ -198,7 +198,11 @@ export function parse(tokens){
     }
 
     function parseFunctionDeclaration(){
-        eatToken("export");
+        eatToken()
+        if(currentToken.value === "export"){
+            eatToken("export");
+            const isExport = true;
+        }
         const name = currentToken.value;
         eatToken();
         const params = parseParameters();
@@ -216,7 +220,8 @@ export function parse(tokens){
             type: "FUNCTION_DECLARATION",
             name,
             params,
-            statements
+            statements,
+            isExport
         };
     };
 

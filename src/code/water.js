@@ -2,6 +2,8 @@ export default function liquify(ast){
 
     const parameters = {};
     const locals = {};
+    var loop = 1;
+    const binary1 = ["+","-","*","/"];
 
     const generateModule = (ast) => {
         // return `(module ${ast.functions.forEach(functionNode => generateFunction(functionNode))})`;
@@ -19,7 +21,11 @@ export default function liquify(ast){
         var functionName = functionNode.name;
         var params = generateParams(functionNode.params, functionName);
         var statements = generateStatements(functionNode.statements, functionNode.name);
-        return "(func $" + functionName + params + "(result i32)" + statements + "(export $" + functionName + " (func $" + functionName + ") )";
+        if (functionNode.isExport){
+            return "(func (export $" + functionName + ")" + params + "(result i32)" + statements + ")";
+        } else {
+            return "(func $" + functionName + ")" + params + "(result i32)" + statements + ")";
+        }
     }
 
     const generateParams = (params, functionName) => {
@@ -44,15 +50,17 @@ export default function liquify(ast){
                     break;
                 case "VARIABLE_ASSIGNMENT":
                     if (locals[functionName].includes(statementsArray[statement].name) || parameters[functionName].includes(statementsArray[statement].name)){
-                        console.log("chuj")
                        statementsString += assignment(statementsArray[statement], functionName);
                     } else {
-                        console.log("cipa")
                         locals[functionName].push(statementsArray[statement].name);
                         statementsString += "(local $"+ statementsArray[statement].name + "i32)" + assignment(statementsArray[statement], functionName);
                     }
                     break;
                 case "RETURN_STATEMENT":
+                    break;
+                case "FUNCTION_CALL":
+                    statementsString += "(call $" + statementsArray[statement].name + generateCallParams(statementsArray[statement].params) + ")";
+                    break;
                 default:
                     break;
             }
@@ -64,15 +72,28 @@ export default function liquify(ast){
     const assignment = (statement, functionName) => {
         switch (statement.value.type) {
             case "NUMBER_LITERAL":
-                return "(set_local $" + statement.name + "i32.const" + statement.value.value + ")";
+                return "(local.set $" + statement.name + "(i32.const" + statement.value.value + "))";
             case "IDENTIFIER":
                 if (statement.name in locals[functionName] || statement.name in parameters[functionName]){
-                    return "(set_local $" + statement.name + "get_local $" + statement.value.value + ")";
+                    return "(local.set $" + statement.name + "(local.get $" + statement.value.value + "))";
                 }//ERROR ELSE CUZ NEVER DECLARED
             case "BINARY_EXPRESSION":
-                return "(set_local $" + statement.name + generateBinary(statement.value, functionName);
+                return "(local.set $" + statement.name + generateBinary(statement.value, functionName);
         }
-}
+    }
+
+    const generateCallParams = (params) =>{
+        var paramsString = '';
+        for (const param in params){
+            switch (params[param].type) {
+                case "NUMBER_LITERAL":
+                    paramsString += "(i32.const" + params[param].value + ")";
+                case "IDENTIFIER":
+                    paramsString += "(local.get $" + params[param].value + ")";
+                }
+        }
+        return paramsString;
+    }
 
     const generateBinary = (binaryExpression, functionName) =>{
         var operator = binaryExpression.operator;
@@ -83,7 +104,12 @@ export default function liquify(ast){
         var right = generateExpression(rightNode, functionName);
         var operationType = generateOperation(operator);
 
-        return "(" + operationType + "(" + left + ")" + "(" + right + ")";
+        if (binary1.includes(operator)){
+            return "(" + operationType + "(" + left + ")" + "(" + right + ")";
+        }
+        else {
+            return "(" + operationType + "(" + left + ")" + "(" + right + ")";
+        }
     }
 
     const generateExpression = (node, functionName) => {
@@ -91,7 +117,7 @@ export default function liquify(ast){
             case "NUMBER_LITERAL":
                 return "(i32.const" + node.value + ")";
             case "IDENTIFIER": //CHECK IF WE HAVE ACTUALY DECLARED THIS VARIABLE
-                return "(get_local $" + node.value + ")";
+                return "(local.get $" + node.value + ")";
             case "BINARY_EXPRESSION":
                 return generateBinary(node, functionName)
         }
@@ -127,7 +153,13 @@ export default function liquify(ast){
     }
 
     const generateWhileStatement = (whileStatementNode) => {
-        
+        loopname = generateLoopName();
+        return "(loop"
+    }
+
+    const generateLoopName= () => {
+        loopname = loop + 1;
+        return "loop" + loopname;
     }
 
     return generateModule(ast);

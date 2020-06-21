@@ -1,4 +1,4 @@
-export function tokenize(rawCode){
+export function tokenize(sourceCode){
     var currentIndex = 0;
     var tokens = [];
 
@@ -8,7 +8,6 @@ export function tokenize(rawCode){
     var WHITESPACE = /\s/;
 
     var keywords = [
-        "var",
         "print",
         "while",
         "if",
@@ -17,9 +16,9 @@ export function tokenize(rawCode){
         "export",
     ]
 
-    while (currentIndex < rawCode.length){
-        var current = rawCode[currentIndex];
-        var next = rawCode[currentIndex+1];
+    while (currentIndex < sourceCode.length){
+        var current = sourceCode[currentIndex];
+        var next = sourceCode[currentIndex+1];
         //Skip Whitespace
         if (WHITESPACE.test(current) || NEWLINE.test(current)) {
             currentIndex++;
@@ -28,10 +27,10 @@ export function tokenize(rawCode){
         //Read numeric string
         if (NUMERIC.test(current)) {
             var number = 0;
-            while(NUMERIC.test(current) && currentIndex < rawCode.length) {
+            while(NUMERIC.test(current) && currentIndex < sourceCode.length) {
                 number += current;
                 currentIndex++;
-                current = rawCode[currentIndex];
+                current = sourceCode[currentIndex];
             }
             tokens.push({
                 type: 'NUMBER',
@@ -42,10 +41,10 @@ export function tokenize(rawCode){
         //Read alphabetical string
         if (ALPHA.test(current)) {
             var string = "";
-            while(ALPHA.test(current) && currentIndex < rawCode.length) {
+            while(ALPHA.test(current) && currentIndex < sourceCode.length) {
                 string += current;
                 currentIndex++;
-                current = rawCode[currentIndex];
+                current = sourceCode[currentIndex];
                 
             }
             if (keywords.includes(string)){
@@ -63,10 +62,10 @@ export function tokenize(rawCode){
         //Read string
         if (current === '"') {
             string = '';
-            while(current !== '"' && currentIndex < rawCode.length) {
+            while(current !== '"' && currentIndex < sourceCode.length) {
                 string += current;
                 currentIndex++;
-                current = rawCode[currentIndex];
+                current = sourceCode[currentIndex];
             }
             currentIndex++;
             tokens.push({
