@@ -6,7 +6,7 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import liquify from "../code/water";
+import emit from "../code/emitter";
 
 class Ast extends React.Component {
 
@@ -16,8 +16,7 @@ class Ast extends React.Component {
 
     
     handleClick = () => {
-        const ast = liquify(this.props.parsed);
-        console.log(this.props.parsed);
+        const ast = emit(this.props.parsed);
         this.props.dispatch({ type: "AST", value: ast})
     }
 

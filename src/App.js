@@ -8,7 +8,6 @@ import { Provider } from 'react-redux';
 
 const initialState = { rawCode: '', tokenized: '', parsed: '', ast: '',};
 function reducer(state = initialState, action){
-  console.log(state);
   switch (action.type) {
     case "RAW_CODE_INPUT":
       return {

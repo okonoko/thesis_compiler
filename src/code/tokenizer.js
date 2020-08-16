@@ -1,26 +1,33 @@
 export function tokenize(sourceCode){
     var currentIndex = 0;
     var tokens = [];
-
+    var line = 0;
+    var index = 0;
     var ALPHA = /[a-zA-Z]/;
-    var NEWLINE = /\n/;
     var NUMERIC = /[0-9]/;
+    var NEWLINE = /\n/;
     var WHITESPACE = /\s/;
 
     var keywords = [
-        "print",
         "while",
         "if",
         "func",
-        "return",
         "export",
+        "return"
     ]
 
     while (currentIndex < sourceCode.length){
         var current = sourceCode[currentIndex];
         var next = sourceCode[currentIndex+1];
         //Skip Whitespace
-        if (WHITESPACE.test(current) || NEWLINE.test(current)) {
+        if (WHITESPACE.test(current)){
+            currentIndex++;
+            index++
+            continue;
+        }
+        if (NEWLINE.test(current)) {
+            line++
+            index = 0;
             currentIndex++;
             continue;
         }
@@ -85,7 +92,7 @@ export function tokenize(sourceCode){
                     currentIndex++;
                 } else {
                     tokens.push({
-                        type: 'ASSIGN',
+                        type: 'OPERATOR',
                         value: '='
                     })
                     currentIndex++;
@@ -149,20 +156,6 @@ export function tokenize(sourceCode){
                 })
                 currentIndex++;
                 break;
-            case ';':
-                tokens.push({
-                    type: 'SEMICOLON',
-                    value: ';'
-                })
-                currentIndex++;
-                break;
-            case ':':
-                tokens.push({
-                    type: 'COLON',
-                    value: ':'
-                })
-                currentIndex++;
-                break;
             case ',':
                 tokens.push({
                     type: 'COMMA',
@@ -172,51 +165,51 @@ export function tokenize(sourceCode){
                 break;
             case '{':
                 tokens.push({
-                    type: 'CURLY_OPEN',
+                    type: 'BRACE',
                     value: '{'
                 })
                 currentIndex++;
                 break;
             case '}':
                 tokens.push({
-                    type: 'CURLY_CLOSE',
+                    type: 'BRACE',
                     value: '}'
                 })
                 currentIndex++;
                 break;
             case '(':
                 tokens.push({
-                    type: 'PARENS_OPEN',
+                    type: 'PAREN',
                     value: '('
                 })
                 currentIndex++;
                 break;
             case ')':
                 tokens.push({
-                    type: 'PARENS_CLOSE',
+                    type: 'PAREN',
                     value: ')'
                 })
                 currentIndex++;
                 break;
             case '[':
                 tokens.push({
-                    type: 'BRACKET_OPEN',
+                    type: 'BRACKET',
                     value: '['
                 })
                 currentIndex++;
                 break;
             case ']':
                 tokens.push({
-                    type: 'BRACKET_CLOSE',
+                    type: 'BRACKET',
                     value: ']'
                 })
                 currentIndex++;
                 break;
             default:
-                tokens.push({
-                    type: 'BAD',
-                    value: current
-                })
+                throw new Error(
+                    `Unsupported character ${current}`,
+                    current
+                );
                 break;
         }
     }
