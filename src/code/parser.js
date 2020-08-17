@@ -93,20 +93,9 @@ export function parse(tokens){
                 ); 
             }
             var formula = left.value + operator + right.value;
-            // if (left.type === "NUMBER_LITERAL" && right.type == "NUMBER_LITERAL"){          
-            //     return {type: 'NUMBER_LITERAL', value: eval(formula)}
-            // }
-            // if(operator == "*"){
-            //     if (left.value === 0 || right.value === 0){
-            //         return {type: "NUMBER_LITERAL", value: 0}
-            //     }
-            //     if (left.value === 1){
-            //         return {type: right.type, value: right.value}
-            //     }
-            //     if (right.value === 1){
-            //         return {type: left.type, value: left.value}
-            //     }
-            // }
+            if (left.type === "NUMBER_LITERAL" && right.type == "NUMBER_LITERAL"){          
+                return {type: 'NUMBER_LITERAL', value: eval(formula)}
+            }
             return {type: "BINARY_EXPRESSION", left, right, operator: operator};
             
           default:
